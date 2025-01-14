@@ -1,0 +1,22 @@
+{
+  "name": "spanish_youtube_translator",
+  "version": "1.0.0",
+  "description": "A program that takes YouTube transcripts and translates them. Then, it sends it to a Google Doc folder where the user can learn their spanish",
+  "license": "ISC",
+  "author": "Seth M. Zygner",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "free-translate": "^0.6.1",
+    "google-auth-library": "^9.15.0",
+    "google-translate-api-x": "^10.7.2",
+    "googleapis": "^144.0.0",
+    "html-entities": "^2.5.2",
+    "inquirer": "^12.3.2",
+    "youtube-transcript": "^1.2.1"
+  }
+}
