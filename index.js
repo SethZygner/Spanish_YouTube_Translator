@@ -1,8 +1,7 @@
 const fs = require("fs");
 const { YoutubeTranscript } = require("youtube-transcript");
 const translate = require("google-translate-api-x");
-
-const youtubeURL = "tSNRgAuXXJQ";
+const args = process.argv.slice(2);
 
 const translateText = async (entry) => {
   try {
@@ -16,7 +15,7 @@ const translateText = async (entry) => {
 
 const fetchAndTranslateTranscript = async () => {
   try {
-    const script = await YoutubeTranscript.fetchTranscript(youtubeURL);
+    const script = await YoutubeTranscript.fetchTranscript(args[0]);
     // Join all entries into a single block of text
     let fullText = script
       .map((entry) =>
