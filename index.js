@@ -29,6 +29,19 @@ const fetchAndTranslateTranscript = async () => {
 
     // Split the full text into sentences
     let sentences = fullText.match(/[^.!?]+[.!?]/g) || [];
+
+    let maxWordCount = 15; // Adjust this number based on your requirement
+
+    sentences = sentences.reduce((acc, sentence) => {
+      let words = sentence.trim().split(/\s+/);
+      while (words.length > maxWordCount) {
+        let part = words.splice(0, maxWordCount).join(" ") + "...";
+        acc.push(part);
+      }
+      acc.push(words.join(" "));
+      return acc;
+    }, []);
+
     sentences = sentences.map((sentence) => sentence.trim());
 
     // Translate each sentence and create an object for each
