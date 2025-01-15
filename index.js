@@ -2,6 +2,7 @@ const fs = require("fs");
 const { YoutubeTranscript } = require("youtube-transcript");
 const translate = require("google-translate-api-x");
 const args = process.argv.slice(2);
+console.log(args[0])
 
 // Function to translate text to Spanish using the Google Translate API
 const translateText = async (entry) => {
@@ -33,7 +34,7 @@ const fetchAndTranslateTranscript = async () => {
       .join(" ");
 
     // Split the full text into sentences using regular expression
-    let sentences = fullText.match(/["“]?[^.!?]+[.!?]["”]?/g) || [];
+    let sentences = fullText.match(/["“]?[^.!?]+[.!?]["”]?/g) || [fullText];
     const maxWordCount = 15;
 
     // Further split sentences that exceed maxWordCount
