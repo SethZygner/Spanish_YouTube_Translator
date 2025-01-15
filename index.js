@@ -6,7 +6,7 @@ const args = process.argv.slice(2);
 // Function to translate text to Spanish using the Google Translate API
 const translateText = async (entry) => {
   try {
-    const { text } = await translate(entry, { to: "es" });
+    const { text } = await translate(entry, { to: args[1] });
     return text;
   } catch (error) {
     console.log("ISSUE: ", error);
@@ -33,7 +33,7 @@ const fetchAndTranslateTranscript = async () => {
       .join(" ");
 
     // Split the full text into sentences using regular expression
-    let sentences = fullText.match(/[^.!?]+[.!?]/g) || [];
+    let sentences = fullText.match(/["“]?[^.!?]+[.!?]["”]?/g) || [];
     const maxWordCount = 15;
 
     // Further split sentences that exceed maxWordCount
