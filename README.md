@@ -5,11 +5,13 @@ Dive into the world of Spanish effortlessly with our user-friendly application. 
 **How does it work?** Simply select any YouTube video, and our app will fetch and translate the transcript into Spanish. Follow along with the video while picking up new language skills.
 
 **Getting Started:** Open your terminal and enter the following command:
-`npm run translate {YouTube_Video_ID} {Language_Code}`
+`npm run translate {YouTube_Video_ID} {Language_Code} {DeepL_Auth_Key}`
 
 Replace `{YouTube_Video_ID}` with the ID of the YouTube video you want to translate.
 
 Replace `{Language_Code}` with the ID of the YouTube video you want to translate.
+
+Replace `{DeepL_Auth_Key}` with your DeepL auth key if you have a free or pro subscription.
 
 **Supported Languages**
 Our app currently supports the following languages:

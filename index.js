@@ -1,79 +1,75 @@
 const fs = require("fs");
 const { YoutubeTranscript } = require("youtube-transcript");
 const translate = require("google-translate-api-x");
-const args = process.argv.slice(2);
-console.log(args[0])
+const deepl = require('deepl-node');
 
-// Function to translate text to Spanish using the Google Translate API
-const translateText = async (entry) => {
+let deeplError = false;
+
+// Function to translate text to the target language
+const translateText = async (entry, targetLang, deeplAPIKey = null) => {
+  // Attempt to use DeepL if the API key is provided and no previous DeepL error
+  if (deeplAPIKey && !deeplError) {
+    try {
+      const translator = new deepl.Translator(deeplAPIKey);
+      const { text } = await translator.translateText(entry, null, targetLang);
+      return text;
+    } catch (err) {
+      console.error('DeepL translation error:', err);
+      deeplError = true; // Set the error flag to skip DeepL for future translations
+    }
+  }
+
+  // Use Google Translate as a fallback if DeepL is not used or fails
   try {
-    const { text } = await translate(entry, { to: args[1] });
+    const { text } = await translate(entry, { to: targetLang });
     return text;
-  } catch (error) {
-    console.log("ISSUE: ", error);
+  } catch (err) {
+    console.error('Google Translate error:', err);
     return null;
   }
 };
 
 // Function to fetch the YouTube transcript and translate it
-const fetchAndTranslateTranscript = async () => {
+const fetchAndTranslateTranscript = async (videoId, targetLang, deeplAPIKey = null) => {
   try {
-    // Fetch the transcript using the first command-line argument as the YouTube video ID
-    const script = await YoutubeTranscript.fetchTranscript(args[0]);
+    // Fetch the transcript using the provided YouTube video ID
+    const script = await YoutubeTranscript.fetchTranscript(videoId);
 
-    // Join all entries into a single block of text
-    let fullText = script
-      .map(
-        (entry) =>
-          entry.text
-            .replace(/&amp;#39;/g, "'") // Replace HTML entity for apostrophe
-            .replace(/&amp;quot;/g, '"') // Replace HTML entity for quotation mark
-            .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-            .trim() // Remove leading and trailing spaces
-      )
+    // Join all entries into a single block of text and clean it up
+    const fullText = script
+      .map(entry => entry.text.replace(/&amp;#39;/g, "'").replace(/&amp;quot;/g, '"').replace(/\s+/g, " ").trim())
       .join(" ");
 
-    // Split the full text into sentences using regular expression
+    // Split the full text into sentences
     let sentences = fullText.match(/["“]?[^.!?]+[.!?]["”]?/g) || [fullText];
-    const maxWordCount = 15;
 
     // Further split sentences that exceed maxWordCount
-    sentences = sentences
-      .reduce((acc, sentence) => {
-        let words = sentence.trim().split(/\s+/);
-        while (words.length > maxWordCount) {
-          acc.push(words.splice(0, maxWordCount).join(" ") + "...");
-        }
-        acc.push(words.join(" "));
-        return acc;
-      }, [])
-      .map((sentence) => sentence.trim());
+    const maxWordCount = 15;
+    sentences = sentences.reduce((acc, sentence) => {
+      let words = sentence.trim().split(/\s+/);
+      while (words.length > maxWordCount) {
+        acc.push(words.splice(0, maxWordCount).join(" ") + "...");
+      }
+      acc.push(words.join(" "));
+      return acc;
+    }, []).map(sentence => sentence.trim());
 
-    // Translate each sentence and create an object for each
-    let translatedSentences = await Promise.all(
+    // Translate each sentence
+    const translatedSentences = (await Promise.all(
       sentences.map(async (sentence, index) => {
-        const translatedText = await translateText(sentence);
+        const translatedText = await translateText(sentence, targetLang, deeplAPIKey);
         if (translatedText) {
-          return {
-            originalText: sentence,
-            translatedText,
-          };
+          return `${sentence}\n${translatedText}\n`;
+        } else {
+          console.warn(`Skipping sentence ${index} due to error`);
+          return null;
         }
-        console.warn(`Skipping sentence ${index} due to error`);
-        return null;
       })
-    );
+    )).filter(Boolean).join("\n");
 
-    // Remove null entries from translatedSentences
-    translatedSentences = translatedSentences.filter(Boolean);
-
-    // Save translated sentences to a local file in the desired format
+    // Save the translated sentences to a local file
     const outputFilePath = "translated_transcript.txt";
-    const outputData = translatedSentences
-      .map((entry) => `${entry.originalText}\n${entry.translatedText}\n`)
-      .join("\n");
-
-    fs.writeFileSync(outputFilePath, outputData);
+    fs.writeFileSync(outputFilePath, translatedSentences);
     console.log(`Translated transcript saved to ${outputFilePath}`);
   } catch (error) {
     console.error("Error in processing transcript:", error);
@@ -81,4 +77,5 @@ const fetchAndTranslateTranscript = async () => {
 };
 
 // Run the main function to fetch and translate the transcript
-fetchAndTranslateTranscript();
+const args = process.argv.slice(2);
+fetchAndTranslateTranscript(args[0], args[1], args[2]);
